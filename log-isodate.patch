@@ -1,0 +1,53 @@
+From c9670c25785600d10debb191e55318c1f268fe96 Mon Sep 17 00:00:00 2001
+From: Orivej Desh <orivej@gmx.fr>
+Date: Mon, 13 Jul 2015 12:07:41 +0000
+Subject: [PATCH] Fix date format.
+
+---
+ src/log/log.go      | 8 ++++----
+ src/log/log_test.go | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/log/log.go b/src/log/log.go
+index d37e437..7c65adc 100644
+--- a/src/log/log.go
++++ b/src/log/log.go
+@@ -26,8 +26,8 @@ const (
+ 	// Bits or'ed together to control what's printed. There is no control over the
+ 	// order they appear (the order listed here) or the format they present (as
+ 	// described in the comments).  A colon appears after these items:
+-	//	2009/01/23 01:23:23.123123 /a/b/c/d.go:23: message
+-	Ldate         = 1 << iota     // the date: 2009/01/23
++	//	2009-01-23 01:23:23.123123 /a/b/c/d.go:23: message
++	Ldate         = 1 << iota     // the date: 2009-01-23
+ 	Ltime                         // the time: 01:23:23
+ 	Lmicroseconds                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+ 	Llongfile                     // full file name and line number: /a/b/c/d.go:23
+@@ -83,9 +83,9 @@ func (l *Logger) formatHeader(buf *[]byte, t time.Time, file string, line int) {
+ 		if l.flag&Ldate != 0 {
+ 			year, month, day := t.Date()
+ 			itoa(buf, year, 4)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, int(month), 2)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, day, 2)
+ 			*buf = append(*buf, ' ')
+ 		}
+diff --git a/src/log/log_test.go b/src/log/log_test.go
+index 158c3d9..678d9ec 100644
+--- a/src/log/log_test.go
++++ b/src/log/log_test.go
+@@ -14,7 +14,7 @@ import (
+ )
+ 
+ const (
+-	Rdate         = `[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]`
++	Rdate         = `[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]`
+ 	Rtime         = `[0-9][0-9]:[0-9][0-9]:[0-9][0-9]`
+ 	Rmicroseconds = `\.[0-9][0-9][0-9][0-9][0-9][0-9]`
+ 	Rline         = `(54|56):` // must update if the calls to l.Printf / l.Print below move
+-- 
+2.4.3
+
