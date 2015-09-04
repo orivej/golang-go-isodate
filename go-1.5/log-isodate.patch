@@ -1,0 +1,56 @@
+From b63f12fabceb756baab6a2c084553657fe6ea9c1 Mon Sep 17 00:00:00 2001
+From: Orivej Desh <orivej@gmx.fr>
+Date: Fri, 4 Sep 2015 02:55:13 +0000
+Subject: [PATCH] Fix date format.
+
+---
+ src/log/log.go      | 10 +++++-----
+ src/log/log_test.go |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/log/log.go b/src/log/log.go
+index 4cfe550..f57544d 100644
+--- a/src/log/log.go
++++ b/src/log/log.go
+@@ -29,10 +29,10 @@ const (
+ 	// The prefix is followed by a colon only when Llongfile or Lshortfile
+ 	// is specified.
+ 	// For example, flags Ldate | Ltime (or LstdFlags) produce,
+-	//	2009/01/23 01:23:23 message
++	//	2009-01-23 01:23:23 message
+ 	// while flags Ldate | Ltime | Lmicroseconds | Llongfile produce,
+-	//	2009/01/23 01:23:23.123123 /a/b/c/d.go:23: message
+-	Ldate         = 1 << iota     // the date in the local time zone: 2009/01/23
++	//	2009-01-23 01:23:23.123123 /a/b/c/d.go:23: message
++	Ldate         = 1 << iota     // the date in the local time zone: 2009-01-23
+ 	Ltime                         // the time in the local time zone: 01:23:23
+ 	Lmicroseconds                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+ 	Llongfile                     // full file name and line number: /a/b/c/d.go:23
+@@ -96,9 +96,9 @@ func (l *Logger) formatHeader(buf *[]byte, t time.Time, file string, line int) {
+ 		if l.flag&Ldate != 0 {
+ 			year, month, day := t.Date()
+ 			itoa(buf, year, 4)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, int(month), 2)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, day, 2)
+ 			*buf = append(*buf, ' ')
+ 		}
+diff --git a/src/log/log_test.go b/src/log/log_test.go
+index dd16c9d..6c09cfa 100644
+--- a/src/log/log_test.go
++++ b/src/log/log_test.go
+@@ -17,7 +17,7 @@ import (
+ )
+ 
+ const (
+-	Rdate         = `[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]`
++	Rdate         = `[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]`
+ 	Rtime         = `[0-9][0-9]:[0-9][0-9]:[0-9][0-9]`
+ 	Rmicroseconds = `\.[0-9][0-9][0-9][0-9][0-9][0-9]`
+ 	Rline         = `(57|59):` // must update if the calls to l.Printf / l.Print below move
+-- 
+2.4.6
+
