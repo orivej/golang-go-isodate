@@ -1,0 +1,69 @@
+From adcd9911b10d654eb28f09514be3941358f075eb Mon Sep 17 00:00:00 2001
+From: Orivej Desh <orivej@gmx.fr>
+Date: Fri, 4 Sep 2015 02:55:13 +0000
+Subject: [PATCH] Fix date format
+
+---
+ src/log/log.go      | 6 +++---
+ src/log/log_test.go | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/log/log.go b/src/log/log.go
+index 2b7c57fdfe..0b0e992870 100644
+--- a/src/log/log.go
++++ b/src/log/log.go
+@@ -34,7 +34,7 @@ import (
+ // while flags Ldate | Ltime | Lmicroseconds | Llongfile produce,
+ //	2009/01/23 01:23:23.123123 /a/b/c/d.go:23: message
+ const (
+-	Ldate         = 1 << iota     // the date in the local time zone: 2009/01/23
++	Ldate         = 1 << iota     // the date in the local time zone: 2009-01-23
+ 	Ltime                         // the time in the local time zone: 01:23:23
+ 	Lmicroseconds                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+ 	Llongfile                     // full file name and line number: /a/b/c/d.go:23
+@@ -102,9 +102,9 @@ func (l *Logger) formatHeader(buf *[]byte, t time.Time, file string, line int) {
+ 		if l.flag&Ldate != 0 {
+ 			year, month, day := t.Date()
+ 			itoa(buf, year, 4)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, int(month), 2)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, day, 2)
+ 			*buf = append(*buf, ' ')
+ 		}
+diff --git a/src/log/log_test.go b/src/log/log_test.go
+index adc15e7e8e..762aa9d1ff 100644
+--- a/src/log/log_test.go
++++ b/src/log/log_test.go
+@@ -17,7 +17,7 @@ import (
+ )
+ 
+ const (
+-	Rdate         = `[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]`
++	Rdate         = `[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]`
+ 	Rtime         = `[0-9][0-9]:[0-9][0-9]:[0-9][0-9]`
+ 	Rmicroseconds = `\.[0-9][0-9][0-9][0-9][0-9][0-9]`
+ 	Rline         = `(57|59):` // must update if the calls to l.Printf / l.Print below move
+@@ -139,7 +139,7 @@ func TestUTCFlag(t *testing.T) {
+ 	// Verify a log message looks right in the right time zone. Quantize to the second only.
+ 	now := time.Now().UTC()
+ 	l.Print("hello")
+-	want := fmt.Sprintf("Test:%d/%.2d/%.2d %.2d:%.2d:%.2d hello\n",
++	want := fmt.Sprintf("Test:%d-%.2d-%.2d %.2d:%.2d:%.2d hello\n",
+ 		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+ 	got := b.String()
+ 	if got == want {
+@@ -148,7 +148,7 @@ func TestUTCFlag(t *testing.T) {
+ 	// It's possible we crossed a second boundary between getting now and logging,
+ 	// so add a second and try again. This should very nearly always work.
+ 	now = now.Add(time.Second)
+-	want = fmt.Sprintf("Test:%d/%.2d/%.2d %.2d:%.2d:%.2d hello\n",
++	want = fmt.Sprintf("Test:%d-%.2d-%.2d %.2d:%.2d:%.2d hello\n",
+ 		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+ 	if got == want {
+ 		return
+-- 
+2.15.1
+

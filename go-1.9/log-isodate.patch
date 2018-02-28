@@ -1,0 +1,74 @@
+From 5f6b3fdd25f132cd7bdc622ce2f45db3f25ab871 Mon Sep 17 00:00:00 2001
+From: Orivej Desh <orivej@gmx.fr>
+Date: Fri, 4 Sep 2015 02:55:13 +0000
+Subject: [PATCH] Fix date format
+
+---
+ src/log/log.go      | 10 +++++-----
+ src/log/log_test.go |  6 +++---
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/log/log.go b/src/log/log.go
+index 58b8788be4..be8d8bcf50 100644
+--- a/src/log/log.go
++++ b/src/log/log.go
+@@ -31,10 +31,10 @@ const (
+ 	// The prefix is followed by a colon only when Llongfile or Lshortfile
+ 	// is specified.
+ 	// For example, flags Ldate | Ltime (or LstdFlags) produce,
+-	//	2009/01/23 01:23:23 message
++	//	2009-01-23 01:23:23 message
+ 	// while flags Ldate | Ltime | Lmicroseconds | Llongfile produce,
+-	//	2009/01/23 01:23:23.123123 /a/b/c/d.go:23: message
+-	Ldate         = 1 << iota     // the date in the local time zone: 2009/01/23
++	//	2009-01-23 01:23:23.123123 /a/b/c/d.go:23: message
++	Ldate         = 1 << iota     // the date in the local time zone: 2009-01-23
+ 	Ltime                         // the time in the local time zone: 01:23:23
+ 	Lmicroseconds                 // microsecond resolution: 01:23:23.123123.  assumes Ltime.
+ 	Llongfile                     // full file name and line number: /a/b/c/d.go:23
+@@ -98,9 +98,9 @@ func (l *Logger) formatHeader(buf *[]byte, t time.Time, file string, line int) {
+ 		if l.flag&Ldate != 0 {
+ 			year, month, day := t.Date()
+ 			itoa(buf, year, 4)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, int(month), 2)
+-			*buf = append(*buf, '/')
++			*buf = append(*buf, '-')
+ 			itoa(buf, day, 2)
+ 			*buf = append(*buf, ' ')
+ 		}
+diff --git a/src/log/log_test.go b/src/log/log_test.go
+index dd16c9d3e1..617d0dca7d 100644
+--- a/src/log/log_test.go
++++ b/src/log/log_test.go
+@@ -17,7 +17,7 @@ import (
+ )
+ 
+ const (
+-	Rdate         = `[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]`
++	Rdate         = `[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]`
+ 	Rtime         = `[0-9][0-9]:[0-9][0-9]:[0-9][0-9]`
+ 	Rmicroseconds = `\.[0-9][0-9][0-9][0-9][0-9][0-9]`
+ 	Rline         = `(57|59):` // must update if the calls to l.Printf / l.Print below move
+@@ -128,7 +128,7 @@ func TestUTCFlag(t *testing.T) {
+ 	// Verify a log message looks right in the right time zone. Quantize to the second only.
+ 	now := time.Now().UTC()
+ 	l.Print("hello")
+-	want := fmt.Sprintf("Test:%d/%.2d/%.2d %.2d:%.2d:%.2d hello\n",
++	want := fmt.Sprintf("Test:%d-%.2d-%.2d %.2d:%.2d:%.2d hello\n",
+ 		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+ 	got := b.String()
+ 	if got == want {
+@@ -137,7 +137,7 @@ func TestUTCFlag(t *testing.T) {
+ 	// It's possible we crossed a second boundary between getting now and logging,
+ 	// so add a second and try again. This should very nearly always work.
+ 	now = now.Add(time.Second)
+-	want = fmt.Sprintf("Test:%d/%.2d/%.2d %.2d:%.2d:%.2d hello\n",
++	want = fmt.Sprintf("Test:%d-%.2d-%.2d %.2d:%.2d:%.2d hello\n",
+ 		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+ 	if got == want {
+ 		return
+-- 
+2.12.0
+
